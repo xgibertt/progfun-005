@@ -66,7 +66,7 @@ abstract class TweetSet {
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def mostRetweeted: Tweet = ???
+  def mostRetweeted: Tweet
   
   /**
    * Returns a list containing all tweets of this set, sorted by retweet count
@@ -77,7 +77,19 @@ abstract class TweetSet {
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def descendingByRetweet: TweetList = ???
+  def descendingByRetweet: TweetList = {
+    def descendingByRetweet(acc: TweetList): TweetList = {
+      try {
+        val mr = mostRetweeted
+        remove(mr)
+        acc.add(mr)
+      } catch {
+        case _ => acc
+      }
+    }
+
+    descendingByRetweet(Nil)
+  }
   
   /**
    * The following methods are already implemented
@@ -112,6 +124,8 @@ class Empty extends TweetSet {
 
   def union(that: TweetSet): TweetSet = that
 
+  def mostRetweeted: Tweet = throw new NoSuchElementException
+
   /**
    * The following methods are already implemented
    */
@@ -134,6 +148,13 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   def union(that: TweetSet): TweetSet =
     right.union(left.union(that.incl(elem)))
+
+  def mostRetweeted: Tweet = {
+    val l = if (left.isInstanceOf[Empty] || elem.retweets > left.mostRetweeted.retweets) elem else left.mostRetweeted
+    val r = if (right.isInstanceOf[Empty] || l.retweets > right.mostRetweeted.retweets) l else right.mostRetweeted
+    r
+  }
+
 
   /**
    * The following methods are already implemented
@@ -171,16 +192,19 @@ trait TweetList {
       f(head)
       tail.foreach(f)
     }
+  def add(f: Tweet): TweetList
 }
 
 object Nil extends TweetList {
   def head = throw new java.util.NoSuchElementException("head of EmptyList")
   def tail = throw new java.util.NoSuchElementException("tail of EmptyList")
   def isEmpty = true
+  def add(f: Tweet): TweetList = new Cons(f, Nil)
 }
 
 class Cons(val head: Tweet, val tail: TweetList) extends TweetList {
   def isEmpty = false
+  def add(f: Tweet): TweetList = new Cons(f, this)
 }
 
 
