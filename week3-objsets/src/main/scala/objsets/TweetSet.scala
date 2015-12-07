@@ -84,7 +84,7 @@ abstract class TweetSet {
         remove(mr)
         acc.add(mr)
       } catch {
-        case _ => acc
+        case _: Throwable => acc
       }
     }
 
