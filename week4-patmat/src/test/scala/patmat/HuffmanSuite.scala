@@ -7,11 +7,14 @@ import org.scalatest.junit.JUnitRunner
 
 import patmat.Huffman._
 
+import scala.collection.immutable.List
+
 @RunWith(classOf[JUnitRunner])
 class HuffmanSuite extends FunSuite {
 	trait TestTrees {
 		val t1 = Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5)
 		val t2 = Fork(Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5), Leaf('d',4), List('a','b','d'), 9)
+    val ct1 = List(('a', List(0,1,1,1,0,1))) ::: List(('b', List(1,0,1,1,1)))
 	}
 
 
@@ -33,6 +36,10 @@ class HuffmanSuite extends FunSuite {
     assert(string2Chars("hello, world") === List('h', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd'))
   }
 
+  test("times for char list") {
+    assert(times("aabbbaaaaac".toList) === List(('c', 1), ('b', 3), ('a', 7)))
+  }
+
 
   test("makeOrderedLeafList for some frequency table") {
     assert(makeOrderedLeafList(List(('t', 2), ('e', 1), ('x', 3))) === List(Leaf('e',1), Leaf('t',2), Leaf('x',3)))
@@ -44,10 +51,33 @@ class HuffmanSuite extends FunSuite {
     assert(combine(leaflist) === List(Fork(Leaf('e',1),Leaf('t',2),List('e', 't'),3), Leaf('x',4)))
   }
 
+  test("combine of one leaf list") {
+    val leaflist = List(Leaf('e', 1))
+    assert(combine(leaflist) === List(Leaf('e',1)))
+  }
+
 
   test("decode and encode a very short text should be identity") {
     new TestTrees {
       assert(decode(t1, encode(t1)("ab".toList)) === "ab".toList)
+    }
+  }
+
+  test("codeBits a char") {
+    new TestTrees {
+      assert(codeBits(ct1)('b') === List(1,0,1,1,1))
+    }
+  }
+
+  test("convert code tree into code table") {
+    new TestTrees {
+      assert(convert(createCodeTree("ab".toList)) == List(('a', List(1))) ::: List(('b', List(0))))
+    }
+  }
+
+  test("encode is equal to quickEncode") {
+    new TestTrees {
+      assert(encode(t1)("ab".toList) === quickEncode(t1)("ab".toList))
     }
   }
 
